@@ -1,8 +1,6 @@
 import * as cc from 'cc';
-import Declaration from '../Declaration01';
 import { Subscriber01 } from '../Helper/Subscriber01';
 const { ccclass, property } = cc._decorator;   
-const {BaseSubscriber} = Declaration
 
 @ccclass('LetterItem01')
 export class LetterItem01 extends Subscriber01 {
@@ -25,14 +23,10 @@ export class LetterItem01 extends Subscriber01 {
     setStatus(statusID: number) {
         this.currentState = statusID;
         const color = this.getConfig().getStateColor(statusID);
-        
-        // Update status node color
         const sprite = this.status.getComponent(cc.Sprite);
         if (sprite) {
             sprite.color = color;
         }
-        
-        cc.log(`LetterItem01: Set status to ${statusID} with color`, color);
     }
     
     /**
@@ -45,6 +39,21 @@ export class LetterItem01 extends Subscriber01 {
     resetUI() {
         this.setLetterText("");
         this.setStatus(0)
+    }
+
+    statusActive() {
+        this.setStatus(1);
+    }
+
+    playAnimActive(delayTime = 0 , time = 0, callback) {
+        cc.Tween.stopAllByTarget(this.node)
+        cc.tween(this.node)
+            .delay(delayTime)
+            .call(()=>{
+                callback();
+                this.statusActive();
+            })
+            .start()
     }
 
 }

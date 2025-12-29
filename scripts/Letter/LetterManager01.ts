@@ -12,9 +12,7 @@ export class LetterManager01 extends Subscriber01 {
 
     @property({displayName: "Container", type: cc.Node})
     container: cc.Node = null;
-    
-    private currentLetterIndex: number = -1;
-    private isTimelineRunning: boolean = false;
+
     
     start() {
         super.start && super.start();
@@ -58,19 +56,38 @@ export class LetterManager01 extends Subscriber01 {
     generateRandomTimeline(number){
         const randomTimeline: number[] = [];
         for (let index = 0; index < number; index++) {
-            randomTimeline.push(this.generateRandomNumber(0.5, 1, true));
+            randomTimeline.push(this.generateRandomNumber(0.5, 1.5, true));
         }   
         return randomTimeline;
     }
 
     playTimeLine(arrTimeLine){
-
         arrTimeLine.forEach((time, index) => {
             const letterItem: LetterItem01 = this.container.children[index]?.getComponent(LetterItem01);
+            const delayTime = this.getCurrentTimeDelay(arrTimeLine, index);
+            if (letterItem) {
+                const callback = () => {
+                    this.resetStatus();
+                }
+                letterItem.playAnimActive(delayTime, time, callback);
+            }
             
         });
     }
+    getCurrentTimeDelay(arrTimeLine , currentIndex){
+        let delayTime = 0;
+        for (let index = 0; index < currentIndex; index++) {
+            delayTime+= arrTimeLine[index];
+            
+        }
+        return delayTime
+    }
 
-    
-   
+    resetStatus(){
+        this.container.children.forEach((letterItem, index) => {
+            letterItem.getComponent(LetterItem01).setStatus(0);
+        });
+    }
+
+
 }

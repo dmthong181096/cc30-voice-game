@@ -26,15 +26,19 @@ export class GameDirector01 extends BaseGameDirector {
         const arrTimeTine = this._letterManager.generateRandomTimeline(10);
         cc.log(arrTimeTine)
         const dataFake =  {
-          arrLetter
+          arrLetter,
+          arrTimeTine
         }
         this.joinGame(dataFake);
     }
 
     joinGame(data) {
-        const {arrLetter } = data;
+        const {arrLetter , arrTimeTine} = data;
         if( arrLetter){
             this._letterManager.updateLetter(arrLetter);
+        }
+        if(arrTimeTine){
+            this._letterManager.playTimeLine(arrTimeTine);
         }
     }
 }
