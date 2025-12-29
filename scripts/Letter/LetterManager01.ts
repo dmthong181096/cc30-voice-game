@@ -33,14 +33,14 @@ export class LetterManager01 extends Subscriber01 {
         });
     }
 
-    generateAndUpdateLetters(): void {
+    generateRandomLetters(number) {
         const randomLetters: number[] = [];
         
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < number; i++) {
             randomLetters.push(this.generateRandomNumber());
         }
         
         cc.log('LetterManager01: Generated random letters:', randomLetters);
-        this.updateLetter(randomLetters);
+        return randomLetters;
     }
 }

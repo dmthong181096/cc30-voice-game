@@ -22,8 +22,9 @@ export class GameDirector01 extends BaseGameDirector {
         this.initComponent();
     }
     start(): void {
-        const dataFake = {
-            arrLetter: [ 1,2,3,4,5,6,7,8,9,10]
+        const arrLetter =  this._letterManager.generateRandomLetters(10);
+        const dataFake =  {
+          arrLetter
         }
         this.joinGame(dataFake);
     }

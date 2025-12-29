@@ -1,7 +1,7 @@
-import { _decorator } from 'cc';
+import * as cc from 'cc';
 import Declaration from '../Declaration01';
 
-const { ccclass } = _decorator;
+const { ccclass } = cc._decorator;
 const { BaseConfig } = Declaration;
 
 @ccclass('Config01')
@@ -14,6 +14,14 @@ export class Config01 extends BaseConfig {
         13: 'M', 14: 'N', 15: 'O', 16: 'P', 17: 'Q', 18: 'R',
         19: 'S', 20: 'T', 21: 'U', 22: 'V', 23: 'W', 24: 'X',
         25: 'Y', 26: 'Z'
+    };
+    
+    // Letter item state colors
+    private stateColors: { [key: string]: cc.Color } = {
+        0: cc.Color.GRAY,      // Chưa active - màu xám
+        1: cc.Color.BLUE,    // Đang active - màu xanh dương  
+        2: cc.Color.RED,       // Đọc sai - màu đỏ
+        3: cc.Color.GREEN      // Hoàn thành - màu xanh lá
     };
     
     /**
@@ -31,6 +39,23 @@ export class Config01 extends BaseConfig {
      */
     getLetterMap(): { [key: number]: string } {
         return { ...this.letterMap };
+    }
+    
+    /**
+     * Get color by state
+     * @param state - State name: 'idle', 'active', 'miss', 'done'
+     * @returns Color for the state
+     */
+    getStateColor(stateID: string): cc.Color {
+        return this.stateColors[stateID] || cc.Color.WHITE;
+    }
+    
+    /**
+     * Get all state colors
+     * @returns Copy of state colors map
+     */
+    getStateColors(): { [key: string]: cc.Color } {
+        return { ...this.stateColors };
     }
 }
 
