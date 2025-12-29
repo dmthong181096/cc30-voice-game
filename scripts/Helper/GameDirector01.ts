@@ -23,6 +23,8 @@ export class GameDirector01 extends BaseGameDirector {
     }
     start(): void {
         const arrLetter =  this._letterManager.generateRandomLetters(10);
+        const arrTimeTine = this._letterManager.generateRandomTimeline(10);
+        cc.log(arrTimeTine)
         const dataFake =  {
           arrLetter
         }

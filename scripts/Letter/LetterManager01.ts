@@ -13,13 +13,23 @@ export class LetterManager01 extends Subscriber01 {
     @property({displayName: "Container", type: cc.Node})
     container: cc.Node = null;
     
+    private currentLetterIndex: number = -1;
+    private isTimelineRunning: boolean = false;
+    
     start() {
         super.start && super.start();
     }
     
-    generateRandomNumber(): number {
-        return Math.floor(Math.random() * 26) + 1;
+    generateRandomNumber(min, max, isFloat = false): number {
+        let number = min;
+        if (isFloat) {
+            number =  (Math.random() * max - min) + min;
+        } else {
+            number = Math.floor(Math.random() * (max-min)) + min;
+        }
+        return number
     }
+    
 
     updateLetter(arrLetter: Array<number>) {
         arrLetter.forEach((letterID, index) => {
@@ -28,19 +38,39 @@ export class LetterManager01 extends Subscriber01 {
             
             if (letterItem) {
                 letterItem.setLetterText(textLetter);
+                letterItem.setStatus(0); // Set to idle state
                 cc.log(`LetterManager01: Set letter ${index + 1}: ${textLetter} (ID: ${letterID})`);
             }
         });
     }
 
-    generateRandomLetters(number) {
+    generateRandomLetters(number: number): number[] {
         const randomLetters: number[] = [];
         
         for (let i = 0; i < number; i++) {
-            randomLetters.push(this.generateRandomNumber());
+            randomLetters.push(this.generateRandomNumber(26, 1));
         }
         
         cc.log('LetterManager01: Generated random letters:', randomLetters);
         return randomLetters;
     }
+
+    generateRandomTimeline(number){
+        const randomTimeline: number[] = [];
+        for (let index = 0; index < number; index++) {
+            randomTimeline.push(this.generateRandomNumber(0.5, 1, true));
+        }   
+        return randomTimeline;
+    }
+
+    playTimeLine(arrTimeLine){
+
+        arrTimeLine.forEach((time, index) => {
+            const letterItem: LetterItem01 = this.container.children[index]?.getComponent(LetterItem01);
+            
+        });
+    }
+
+    
+   
 }

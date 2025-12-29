@@ -1,10 +1,11 @@
 import * as cc from 'cc';
 import Declaration from '../Declaration01';
+import { Subscriber01 } from '../Helper/Subscriber01';
 const { ccclass, property } = cc._decorator;   
 const {BaseSubscriber} = Declaration
 
 @ccclass('LetterItem01')
-export class LetterItem01 extends BaseSubscriber {
+export class LetterItem01 extends Subscriber01 {
     @property({displayName: "Background", type: cc.Node})
     background: cc.Node = null;
 

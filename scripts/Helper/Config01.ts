@@ -46,17 +46,13 @@ export class Config01 extends BaseConfig {
      * @param state - State name: 'idle', 'active', 'miss', 'done'
      * @returns Color for the state
      */
-    getStateColor(stateID: string): cc.Color {
+    getStateColor(stateID: number): cc.Color {
         return this.stateColors[stateID] || cc.Color.WHITE;
     }
     
-    /**
-     * Get all state colors
-     * @returns Copy of state colors map
-     */
-    getStateColors(): { [key: string]: cc.Color } {
-        return { ...this.stateColors };
-    }
+      
+
 }
 
 
+  
