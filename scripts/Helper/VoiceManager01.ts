@@ -16,11 +16,15 @@ export class VoiceManager01 extends BaseSubscriber {
     
     start() {
         super.start && super.start();
+        cc.log('🎤 VoiceManager01: Component starting...');
         this.initVoiceRecognition();
         this.registerGameEvents();
+        cc.log('🎤 VoiceManager01: Component started successfully');
     }
     
     private registerGameEvents(): void {
+        cc.log('🎤 VoiceManager01: Registering game events...');
+        
         // Game control events
         this.registerEvent('set-target-letter', this.onSetTargetLetter.bind(this));
         this.registerEvent('start-voice-input', this.startListening.bind(this));
@@ -32,11 +36,15 @@ export class VoiceManager01 extends BaseSubscriber {
         this.registerEvent('game-paused', this.onGamePaused.bind(this));
         this.registerEvent('game-resumed', this.onGameResumed.bind(this));
         this.registerEvent('game-over', this.onGameOver.bind(this));
+        
+        cc.log('🎤 VoiceManager01: All events registered successfully');
     }
     
     private initVoiceRecognition(): void {
+        cc.log('🎤 VoiceManager01: Initializing voice recognition...');
+        
         if (!cc.sys.isBrowser) {
-            console.warn('VoiceManager01: Voice recognition only supported on web');
+            cc.error('🎤 ❌ VoiceManager01: Not running in browser');
             this.fireEvent('voice-not-supported', { reason: 'not-browser' });
             return;
         }
@@ -44,30 +52,33 @@ export class VoiceManager01 extends BaseSubscriber {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         
         if (!SpeechRecognition) {
-            console.warn('VoiceManager01: Speech Recognition not supported in this browser');
+            cc.error('🎤 ❌ VoiceManager01: Speech Recognition API not available');
             this.fireEvent('voice-not-supported', { reason: 'no-api' });
             return;
         }
         
         // Check secure context
         const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        cc.log('🎤 VoiceManager01: Secure context check:', isSecure, 'Protocol:', location.protocol, 'Hostname:', location.hostname);
+        
         if (!isSecure) {
-            console.warn('VoiceManager01: Speech Recognition requires HTTPS or localhost');
+            cc.error('🎤 ❌ VoiceManager01: Requires HTTPS or localhost');
             this.fireEvent('voice-not-supported', { reason: 'insecure-context' });
             return;
         }
         
         try {
+            cc.log('🎤 VoiceManager01: Creating SpeechRecognition instance...');
             this.recognition = new SpeechRecognition();
             this.setupRecognitionProperties();
             this.setupRecognitionEvents();
             this.isInitialized = true;
             
-            console.log('VoiceManager01: Initialized successfully');
+            cc.log('🎤 ✅ VoiceManager01: Initialized successfully!');
             this.fireEvent('voice-initialized');
             
         } catch (error) {
-            console.error('VoiceManager01: Failed to initialize:', error);
+            cc.error('🎤 ❌ VoiceManager01: Failed to initialize:', error);
             this.fireEvent('voice-init-failed', { error });
         }
     }
@@ -76,12 +87,13 @@ export class VoiceManager01 extends BaseSubscriber {
         this.recognition.lang = this.currentLanguage;
         this.recognition.continuous = false;
         this.recognition.interimResults = false;
-        this.recognition.maxAlternatives = 3; // Get multiple alternatives for better matching
+        this.recognition.maxAlternatives = 1; // Chỉ lấy 1 kết quả duy nhất
     }
     
     private setupRecognitionEvents(): void {
         this.recognition.onstart = () => {
             this.isListening = true;
+            cc.log('🎤 VoiceManager01: Recognition STARTED - Listening for:', this.targetLetter);
             this.fireEvent('voice-started', { 
                 targetLetter: this.targetLetter,
                 language: this.currentLanguage 
@@ -89,46 +101,54 @@ export class VoiceManager01 extends BaseSubscriber {
         };
         
         this.recognition.onresult = (event: any) => {
-            const results = [];
+            cc.log('🎤 VoiceManager01: Got voice result, processing...');
             
-            // Process all alternatives
-            for (let i = 0; i < event.results[0].length; i++) {
-                const alternative = event.results[0][i];
-                results.push({
-                    transcript: alternative.transcript.trim().toUpperCase(),
-                    confidence: alternative.confidence
-                });
-            }
+            // Stop recognition immediately after getting result
+            this.stopListening();
+            
+            // Chỉ lấy kết quả đầu tiên (có confidence cao nhất)
+            const firstResult = event.results[0][0];
+            const result = {
+                transcript: firstResult.transcript.trim().toUpperCase(),
+                confidence: firstResult.confidence
+            };
+            
+            cc.log('🎤 VoiceManager01: Single result:', result);
             
             // Find best match
-            const bestMatch = this.findBestLetterMatch(results);
+            const bestMatch = this.findBestLetterMatch([result]);
+            
+            cc.log('🎤 VoiceManager01: Best match:', bestMatch);
+            cc.log('🎤 VoiceManager01: Target letter:', this.targetLetter);
             
             this.fireEvent('voice-result', {
-                results: results,
+                result: result,
                 bestMatch: bestMatch,
                 targetLetter: this.targetLetter
             });
             
             // Check if match is successful
             if (bestMatch.isMatch && bestMatch.confidence >= this.confidenceThreshold) {
+                cc.log('🎤 ✅ VoiceManager01: MATCH! Letter:', bestMatch.letter, 'Confidence:', bestMatch.confidence);
                 this.fireEvent('letter-matched', {
                     letter: bestMatch.letter,
                     confidence: bestMatch.confidence,
                     transcript: bestMatch.transcript
                 });
             } else {
+                cc.log('🎤 ❌ VoiceManager01: NO MATCH! Expected:', this.targetLetter, 'Got:', bestMatch.letter);
                 this.fireEvent('letter-not-matched', {
                     expected: this.targetLetter,
                     received: bestMatch.letter,
                     confidence: bestMatch.confidence,
-                    transcript: bestMatch.transcript,
-                    allResults: results
+                    transcript: bestMatch.transcript
                 });
             }
         };
         
         this.recognition.onerror = (event: any) => {
             this.isListening = false;
+            cc.error('🎤 ❌ VoiceManager01: Recognition ERROR:', event.error);
             
             this.fireEvent('voice-error', { 
                 error: event.error,
@@ -138,6 +158,7 @@ export class VoiceManager01 extends BaseSubscriber {
         
         this.recognition.onend = () => {
             this.isListening = false;
+            cc.log('🎤 ⏹️ VoiceManager01: Recognition ENDED');
             this.fireEvent('voice-ended');
         };
     }
@@ -201,8 +222,10 @@ export class VoiceManager01 extends BaseSubscriber {
     }
     
     // Event handlers
-    private onSetTargetLetter(data: { letter: string }): void {
+    public onSetTargetLetter(data: { letter: string }): void {
         this.targetLetter = data.letter.toUpperCase();
+        cc.log('🎯 VoiceManager01: Target letter set to:', this.targetLetter);
+        cc.log('🎯 VoiceManager01: Event received with data:', data);
         this.fireEvent('target-letter-set', { letter: this.targetLetter });
     }
     
@@ -233,7 +256,13 @@ export class VoiceManager01 extends BaseSubscriber {
     
     // Public methods
     startListening(): void {
+        cc.log('🎤 VoiceManager01: startListening() called');
+        cc.log('🎤 VoiceManager01: isInitialized:', this.isInitialized);
+        cc.log('🎤 VoiceManager01: isListening:', this.isListening);
+        cc.log('🎤 VoiceManager01: targetLetter:', this.targetLetter);
+        
         if (!this.isInitialized) {
+            cc.error('🎤 ❌ VoiceManager01: Not initialized!');
             this.fireEvent('voice-error', { 
                 error: 'not-initialized',
                 message: 'Voice recognition not initialized'
@@ -242,11 +271,12 @@ export class VoiceManager01 extends BaseSubscriber {
         }
         
         if (this.isListening) {
-            console.warn('VoiceManager01: Already listening');
+            cc.warn('🎤 ⚠️ VoiceManager01: Already listening');
             return;
         }
         
         if (!this.targetLetter) {
+            cc.error('🎤 ❌ VoiceManager01: No target letter set!');
             this.fireEvent('voice-error', { 
                 error: 'no-target',
                 message: 'No target letter set'
@@ -255,8 +285,10 @@ export class VoiceManager01 extends BaseSubscriber {
         }
         
         try {
+            cc.log('🎤 VoiceManager01: Starting recognition for letter:', this.targetLetter);
             this.recognition.start();
         } catch (error) {
+            cc.error('🎤 ❌ VoiceManager01: Failed to start recognition:', error);
             this.fireEvent('voice-error', { 
                 error: 'start-failed',
                 message: 'Failed to start voice recognition',

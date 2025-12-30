@@ -19,6 +19,9 @@ export class LetterItem01 extends Subscriber01 {
     setLetterText(letterText: string) {
         this.letterText.string = letterText;
     }
+    getLetterText(): string {
+        return this.letterText.string;
+    }
     
     setStatus(statusID: number) {
         this.currentState = statusID;
@@ -45,15 +48,15 @@ export class LetterItem01 extends Subscriber01 {
         this.setStatus(1);
     }
 
-    playAnimActive(delayTime = 0 , time = 0, callback) {
-        cc.Tween.stopAllByTarget(this.node)
+    playAnimActive(delayTime: number = 0, time: number = 0, callback: () => void): void {
+        cc.Tween.stopAllByTarget(this.node);
         cc.tween(this.node)
             .delay(delayTime)
-            .call(()=>{
+            .call(() => {
                 callback();
                 this.statusActive();
             })
-            .start()
+            .start();
     }
 
 }

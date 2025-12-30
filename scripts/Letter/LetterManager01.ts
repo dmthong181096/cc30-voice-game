@@ -1,11 +1,9 @@
 import * as cc from 'cc';
 import Declaration from '../Declaration01';
 import { LetterItem01 } from './LetterItem01';
-import { Config01 } from '../Helper/Config01';
 import { Subscriber01 } from '../Helper/Subscriber01';
 
 const { ccclass, property } = cc._decorator;
-const { BaseSubscriber } = Declaration;
 
 @ccclass('LetterManager01')
 export class LetterManager01 extends Subscriber01 {
@@ -18,14 +16,14 @@ export class LetterManager01 extends Subscriber01 {
         super.start && super.start();
     }
     
-    generateRandomNumber(min, max, isFloat = false): number {
+    generateRandomNumber(min: number, max: number, isFloat: boolean = false): number {
         let number = min;
         if (isFloat) {
-            number =  (Math.random() * max - min) + min;
+            number = (Math.random() * (max - min)) + min;
         } else {
-            number = Math.floor(Math.random() * (max-min)) + min;
+            number = Math.floor(Math.random() * (max - min)) + min;
         }
-        return number
+        return number;
     }
     
 
@@ -46,14 +44,14 @@ export class LetterManager01 extends Subscriber01 {
         const randomLetters: number[] = [];
         
         for (let i = 0; i < number; i++) {
-            randomLetters.push(this.generateRandomNumber(26, 1));
+            randomLetters.push(this.generateRandomNumber(1, 26));
         }
         
         cc.log('LetterManager01: Generated random letters:', randomLetters);
         return randomLetters;
     }
 
-    generateRandomTimeline(number){
+    generateRandomTimeline(number: number): number[] {
         const randomTimeline: number[] = [];
         for (let index = 0; index < number; index++) {
             randomTimeline.push(this.generateRandomNumber(0.5, 1.5, true));
@@ -61,31 +59,40 @@ export class LetterManager01 extends Subscriber01 {
         return randomTimeline;
     }
 
-    playTimeLine(arrTimeLine){
-        arrTimeLine.forEach((time, index) => {
+    playTimeLine(arrTimeLine: number[]): void {
+        arrTimeLine.forEach((time: number, index: number) => {
             const letterItem: LetterItem01 = this.container.children[index]?.getComponent(LetterItem01);
             const delayTime = this.getCurrentTimeDelay(arrTimeLine, index);
             if (letterItem) {
                 const callback = () => {
+                    const letter = letterItem.getLetterText();
                     this.resetStatus();
+                    
+                    // cc.log(`LetterManager01: Setting target letter: ${letter}`);
+                    this.fireEvent("set-target-letter", {letter});
+                    
+                    // cc.log(`LetterManager01: Starting voice input for letter: ${letter}`);
+                    this.fireEvent("start-voice-input");
                 }
                 letterItem.playAnimActive(delayTime, time, callback);
             }
-            
         });
     }
-    getCurrentTimeDelay(arrTimeLine , currentIndex){
+
+    getCurrentTimeDelay(arrTimeLine: number[], currentIndex: number): number {
         let delayTime = 0;
         for (let index = 0; index < currentIndex; index++) {
-            delayTime+= arrTimeLine[index];
-            
+            delayTime += arrTimeLine[index];
         }
-        return delayTime
+        return delayTime;
     }
 
-    resetStatus(){
-        this.container.children.forEach((letterItem, index) => {
-            letterItem.getComponent(LetterItem01).setStatus(0);
+    resetStatus(): void {
+        // cc.log(`LetterManager01: Stopping voice input`);
+        this.fireEvent("stop-voice-input");
+        
+        this.container.children.forEach((letterNode) => {
+            letterNode.getComponent(LetterItem01).setStatus(0);
         });
     }
 
